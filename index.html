@@ -1,74 +1,134 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Song Word Trainer</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       padding: 2rem;
-      background: #f4f4f4;
+      background-color: #f0f0f0;
     }
-    h1 {
-      color: #333;
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 1rem;
+      font-size: 16px;
     }
-    input, button {
-      padding: 0.5rem;
-      margin: 0.3rem 0;
+    button {
+      margin: 10px 5px;
+      padding: 0.5rem 1rem;
+      font-size: 16px;
     }
     #output {
-      margin-top: 1rem;
-      padding: 1rem;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .word {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 5px 10px;
       background: #fff;
       border-radius: 6px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+    }
+    .correct {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .current {
+      background-color: #cce5ff;
+      color: #004085;
+    }
+    .saved {
+      font-weight: bold;
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>🎵 Song Word Trainer</h1>
-
-  <label for="wordInput">Palabra en inglés:</label><br />
-  <input type="text" id="wordInput" placeholder="Ej: love" />
-  <button onclick="searchSong()">Buscar en canción</button>
+  <h2>🎵 Song Word Trainer</h2>
+  <p>Pega la letra de la canción (en inglés):</p>
+  <textarea id="lyrics"></textarea><br />
+  <button onclick="startTraining()">Iniciar</button>
+  <button onclick="revealWord()">Revelar palabra</button>
+  <button onclick="saveWord()">Guardar palabra</button>
+  <button onclick="readAgain()">Repetir palabra</button>
+  <input type="text" id="userInput" placeholder="Escribe la palabra aquí" oninput="checkWord()" /><br />
 
   <div id="output"></div>
+  <h3>📌 Palabras guardadas:</h3>
+  <ul id="savedWords"></ul>
 
   <script>
-    const canciones = [
-      { titulo: "Let it be", letra: "When I find myself in times of trouble Mother Mary comes to me Speaking words of wisdom, let it be..." },
-      { titulo: "Imagine", letra: "Imagine all the people Living life in peace..." },
-      { titulo: "Bohemian Rhapsody", letra: "Is this the real life? Is this just fantasy? Caught in a landside, no escape from reality..." },
-      { titulo: "Hey Jude", letra: "Hey Jude, don't make it bad Take a sad song and make it better..." },
-      { titulo: "Love me do", letra: "Love, love me do You know I love you..." },
-    ];
+    let words = [];
+    let current = 0;
+    let saved = [];
 
-    function searchSong() {
-      const word = document.getElementById("wordInput").value.trim().toLowerCase();
-      const output = document.getElementById("output");
-      output.innerHTML = "";
+    function startTraining() {
+      const lyrics = document.getElementById('lyrics').value;
+      words = lyrics.trim().split(/\s+/);
+      current = 0;
+      saved = [];
+      updateDisplay();
+      speak(words[current]);
+    }
 
-      if (!word) {
-        output.innerHTML = "<strong>Por favor, escribe una palabra.</strong>";
-        return;
+    function updateDisplay() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+      words.forEach((word, i) => {
+        const span = document.createElement('span');
+        span.className = 'word';
+        if (i < current) span.classList.add('correct');
+        if (i === current) span.classList.add('current');
+        if (saved.includes(i)) span.classList.add('saved');
+        span.textContent = word;
+        output.appendChild(span);
+      });
+      document.getElementById('userInput').value = '';
+      document.getElementById('userInput').focus();
+    }
+
+    function checkWord() {
+      const input = document.getElementById('userInput').value.trim().toLowerCase();
+      if (input === words[current].toLowerCase()) {
+        current++;
+        if (current < words.length) {
+          updateDisplay();
+          speak(words[current]);
+        } else {
+          alert('¡Completado!');
+          updateDisplay();
+        }
       }
+    }
 
-      const resultados = canciones.filter(cancion =>
-        cancion.letra.toLowerCase().includes(word)
-      );
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US'; // Inglés USA
+      utterance.rate = 0.8;
+      speechSynthesis.cancel(); // detener cualquier otra voz en curso
+      speechSynthesis.speak(utterance);
+    }
 
-      if (resultados.length === 0) {
-        output.innerHTML = `<strong>No se encontró la palabra "${word}" en las canciones.</strong>`;
-      } else {
-        resultados.forEach(cancion => {
-          const textoResaltado = cancion.letra.replace(
-            new RegExp(`(${word})`, "gi"),
-            "<mark>$1</mark>"
-          );
-          output.innerHTML += `<h3>${cancion.titulo}</h3><p>${textoResaltado}</p>`;
-        });
+    function revealWord() {
+      alert('La palabra es: ' + words[current]);
+    }
+
+    function saveWord() {
+      if (!saved.includes(current)) {
+        saved.push(current);
+        updateDisplay();
+        const li = document.createElement('li');
+        li.textContent = words[current];
+        document.getElementById('savedWords').appendChild(li);
       }
+    }
+
+    function readAgain() {
+      speak(words[current]);
     }
   </script>
 </body>
