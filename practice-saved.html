@@ -59,6 +59,8 @@
   <script>
     let savedWords = JSON.parse(localStorage.getItem('savedWords')) || [];
     let currentIndex = -1;
+    let wordsSeen = new Set();  // Para llevar registro de palabras ya mostradas
+
     const wordDisplay = document.getElementById('wordDisplay');
     const userInput = document.getElementById('userInput');
     const btnRepeatNormal = document.getElementById('repeatNormal');
@@ -76,13 +78,9 @@
     }
 
     function updateProgress() {
-      if (savedWords.length === 0) {
-        progress.textContent = "Palabra 0 de 0";
-      } else if (currentIndex >= 0) {
-        progress.textContent = `Palabra ${currentIndex + 1} de ${savedWords.length}`;
-      } else {
-        progress.textContent = `Palabra 0 de ${savedWords.length}`;
-      }
+      const total = savedWords.length;
+      const done = wordsSeen.size;
+      progress.textContent = `Palabra ${done} de ${total}`;
     }
 
     function nextWord() {
@@ -94,7 +92,25 @@
         progress.textContent = "Palabra 0 de 0";
         return;
       }
-      currentIndex = (currentIndex + 1) % savedWords.length;
+      
+      if (wordsSeen.size === savedWords.length) {
+        alert("Has practicado todas las palabras guardadas.");
+        wordDisplay.textContent = "¡Has completado la práctica!";
+        userInput.value = '';
+        userInput.disabled = true;
+        progress.textContent = `Palabra ${savedWords.length} de ${savedWords.length}`;
+        return;
+      }
+
+      // Elegir palabra aleatoria que no se haya mostrado aún
+      let randomIndex;
+      do {
+        randomIndex = Math.floor(Math.random() * savedWords.length);
+      } while (wordsSeen.has(randomIndex));
+
+      currentIndex = randomIndex;
+      wordsSeen.add(currentIndex);
+
       userInput.value = "";
       userInput.disabled = false;
       wordDisplay.textContent = "Escribe la palabra aquí:";
@@ -133,10 +149,11 @@
       if (savedWords.length === 0) {
         wordDisplay.textContent = "No hay palabras guardadas.";
         userInput.disabled = true;
+        progress.textContent = "Palabra 0 de 0";
+      } else {
+        progress.textContent = `Palabra 0 de ${savedWords.length}`;
       }
-      updateProgress();
     };
   </script>
 </body>
-
 </html>
