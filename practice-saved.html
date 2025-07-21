@@ -47,6 +47,7 @@
 </head>
 <body>
   <h2>Práctica con Palabras Guardadas</h2>
+  <div id="progress" style="font-weight: bold; margin-bottom: 10px;">Palabra 0 de 0</div>
   <div id="wordDisplay">Presiona "Siguiente palabra" para comenzar</div>
   <input type="text" id="userInput" placeholder="Escribe la palabra aquí..." autocomplete="off" disabled />
   <div>
@@ -64,6 +65,7 @@
     const btnRepeatSlow = document.getElementById('repeatSlow');
     const btnNextWord = document.getElementById('nextWord');
     const btnBackIndex = document.getElementById('backIndex');
+    const progress = document.getElementById('progress');
 
     function speakWord(word, rate=1) {
       const utterance = new SpeechSynthesisUtterance(word);
@@ -73,12 +75,23 @@
       speechSynthesis.speak(utterance);
     }
 
+    function updateProgress() {
+      if (savedWords.length === 0) {
+        progress.textContent = "Palabra 0 de 0";
+      } else if (currentIndex >= 0) {
+        progress.textContent = `Palabra ${currentIndex + 1} de ${savedWords.length}`;
+      } else {
+        progress.textContent = `Palabra 0 de ${savedWords.length}`;
+      }
+    }
+
     function nextWord() {
       if (savedWords.length === 0) {
         alert("No hay palabras guardadas para practicar.");
         wordDisplay.textContent = "No hay palabras guardadas.";
         userInput.value = '';
         userInput.disabled = true;
+        progress.textContent = "Palabra 0 de 0";
         return;
       }
       currentIndex = (currentIndex + 1) % savedWords.length;
@@ -87,6 +100,7 @@
       wordDisplay.textContent = "Escribe la palabra aquí:";
       userInput.focus();
       speakWord(savedWords[currentIndex], 0.8);
+      updateProgress();
     }
 
     userInput.addEventListener('input', () => {
@@ -120,7 +134,9 @@
         wordDisplay.textContent = "No hay palabras guardadas.";
         userInput.disabled = true;
       }
+      updateProgress();
     };
   </script>
 </body>
+
 </html>
