@@ -14,12 +14,10 @@
       flex-direction: column;
       align-items: center;
     }
-
     h2 {
       color: #2c3e50;
       margin-bottom: 1rem;
     }
-
     textarea {
       width: 100%;
       max-width: 600px;
@@ -32,13 +30,11 @@
       margin-bottom: 1rem;
       resize: vertical;
     }
-
     #wordCounter {
       margin-top: 1rem;
       font-size: 18px;
       color: #555;
     }
-
     input[type="text"] {
       width: 100%;
       max-width: 600px;
@@ -48,7 +44,6 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
     button {
       padding: 0.6rem 1.2rem;
       font-size: 16px;
@@ -60,11 +55,9 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
-
     button:hover {
       background-color: #2980b9;
     }
-
     #output {
       margin-top: 1rem;
       max-width: 700px;
@@ -79,7 +72,6 @@
       min-width: 300px;
       justify-content: flex-start;
     }
-
     .word {
       padding: 6px 10px;
       background: #ecf0f1;
@@ -88,30 +80,25 @@
       opacity: 1;
       transition: opacity 0.4s ease;
     }
-
     .correct {
       background-color: #d4edda;
       color: #155724;
     }
-
     .saved {
       border: 2px dashed #f39c12;
       background-color: #fff9e6;
       color: #b57300;
     }
-
     h3 {
       margin-top: 2rem;
       color: #2c3e50;
     }
-
     ul#savedWords {
       list-style: none;
       padding: 0;
       max-width: 600px;
       margin-top: 0.5rem;
     }
-
     ul#savedWords li {
       background: #fdf6e3;
       border: 1px solid #f0e2b6;
@@ -135,6 +122,7 @@
     <button onclick="saveWord()">Guardar palabra</button>
     <button onclick="readAgainNormal()">Repetir palabra (normal)</button>
     <button onclick="readAgainSlow()">Repetir palabra (lenta)</button>
+    <button onclick="openPractice()">Practicar palabras guardadas</button>
   </div>
 
   <div id="wordCounter"></div>
@@ -176,6 +164,7 @@
       current = 0;
       document.getElementById('output').innerHTML = '';
       document.getElementById('userInput').value = '';
+      document.getElementById('userInput').disabled = false;
       document.getElementById('userInput').focus();
       updateCounter();
       speak(words[current], 0.8);
@@ -208,6 +197,7 @@
           speak(words[current], 0.8);
         } else {
           alert('¡Completado!');
+          document.getElementById('userInput').disabled = true;
         }
       }
     }
@@ -239,10 +229,12 @@
 
     function saveWord() {
       const word = words[current - 1];
-      if (!word || saved.includes(word)) return;
-      saved.push(word);
-      localStorage.setItem('savedWords', JSON.stringify(saved));
-      renderSavedWords();
+      if (!word) return;
+      if (!saved.includes(word)) {
+        saved.push(word);
+        localStorage.setItem('savedWords', JSON.stringify(saved));
+        renderSavedWords();
+      }
     }
 
     function renderSavedWords() {
@@ -271,6 +263,10 @@
       if (current < words.length) {
         speak(words[current], 0.5);
       }
+    }
+
+    function openPractice() {
+      window.open('practice-saved.html', '_blank');
     }
   </script>
 </body>
