@@ -149,6 +149,12 @@
   <h3>📌 Palabras guardadas:</h3>
   <ul id="savedWords"></ul>
 
+  <hr />
+  <h2>💬 Chat con ChatGPT</h2>
+  <input type="text" id="chatInput" placeholder="Escribe tu pregunta aquí" />
+  <button onclick="sendMessage()">Enviar</button>
+  <div id="chatResponse" style="margin-top:1rem; padding:1rem; background:#eef; border-radius:6px;"></div>
+
   <script>
     const dictionary = {
       "there's": "hay",
@@ -296,6 +302,36 @@
 
     function readAgain() {
       speak(words[current]);
+    }
+
+    // --- Aquí comienza la función para chat con ChatGPT ---
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const responseDiv = document.getElementById('chatResponse');
+      const message = input.value.trim();
+
+      if (!message) {
+        alert('Por favor escribe una pregunta');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3001/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error en la respuesta del servidor');
+        }
+
+        const data = await response.json();
+        responseDiv.textContent = data.reply;
+      } catch (error) {
+        console.error(error);
+        responseDiv.textContent = 'Error al obtener respuesta del servidor.';
+      }
     }
   </script>
 </body>
