@@ -17,6 +17,7 @@
     #wordDisplay {
       font-size: 24px;
       margin-bottom: 10px;
+      min-height: 30px;
     }
     input {
       padding: 8px;
@@ -47,17 +48,22 @@
 <body>
   <h2>Práctica con Palabras Guardadas</h2>
   <div id="wordDisplay">Presiona "Siguiente palabra" para comenzar</div>
-  <input type="text" id="userInput" placeholder="Escribe la palabra aquí..." autocomplete="off" />
+  <input type="text" id="userInput" placeholder="Escribe la palabra aquí..." autocomplete="off" disabled />
   <div>
     <button id="repeatNormal">🔊 Repetir normal</button>
     <button id="repeatSlow">🐢 Repetir lento</button>
     <button id="nextWord">⏭️ Siguiente palabra</button>
+    <button id="backIndex">🏠 Volver a inicio</button>
   </div>
   <script>
     let savedWords = JSON.parse(localStorage.getItem('savedWords')) || [];
     let currentIndex = -1;
     const wordDisplay = document.getElementById('wordDisplay');
     const userInput = document.getElementById('userInput');
+    const btnRepeatNormal = document.getElementById('repeatNormal');
+    const btnRepeatSlow = document.getElementById('repeatSlow');
+    const btnNextWord = document.getElementById('nextWord');
+    const btnBackIndex = document.getElementById('backIndex');
 
     function speakWord(word, rate=1) {
       const utterance = new SpeechSynthesisUtterance(word);
@@ -71,37 +77,50 @@
       if (savedWords.length === 0) {
         alert("No hay palabras guardadas para practicar.");
         wordDisplay.textContent = "No hay palabras guardadas.";
+        userInput.value = '';
         userInput.disabled = true;
         return;
       }
       currentIndex = (currentIndex + 1) % savedWords.length;
       userInput.value = "";
-      wordDisplay.textContent = "Escribe la palabra aquí:";
-      speakWord(savedWords[currentIndex], 0.8);
       userInput.disabled = false;
+      wordDisplay.textContent = "Escribe la palabra aquí:";
       userInput.focus();
+      speakWord(savedWords[currentIndex], 0.8);
     }
 
     userInput.addEventListener('input', () => {
-      if (savedWords.length === 0) return;
+      if (savedWords.length === 0 || currentIndex < 0) return;
       if (userInput.value.trim().toLowerCase() === savedWords[currentIndex].toLowerCase()) {
-        wordDisplay.textContent = savedWords[currentIndex];
+        wordDisplay.textContent = `¡Correcto! La palabra es: ${savedWords[currentIndex]}`;
+        userInput.disabled = true; // Espera a que presionen siguiente
       }
     });
 
-    document.getElementById('repeatNormal').addEventListener('click', () => {
+    btnRepeatNormal.addEventListener('click', () => {
       if (currentIndex >= 0 && savedWords.length > 0) {
         speakWord(savedWords[currentIndex], 0.8);
       }
     });
 
-    document.getElementById('repeatSlow').addEventListener('click', () => {
+    btnRepeatSlow.addEventListener('click', () => {
       if (currentIndex >= 0 && savedWords.length > 0) {
         speakWord(savedWords[currentIndex], 0.5);
       }
     });
 
-    document.getElementById('nextWord').addEventListener('click', nextWord);
+    btnNextWord.addEventListener('click', nextWord);
+
+    btnBackIndex.addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    window.onload = () => {
+      if (savedWords.length === 0) {
+        wordDisplay.textContent = "No hay palabras guardadas.";
+        userInput.disabled = true;
+      }
+    };
   </script>
 </body>
 </html>
