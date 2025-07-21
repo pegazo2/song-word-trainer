@@ -33,6 +33,12 @@
       resize: vertical;
     }
 
+    #wordCounter {
+      margin-top: 1rem;
+      font-size: 18px;
+      color: #555;
+    }
+
     input[type="text"] {
       width: 100%;
       max-width: 600px;
@@ -70,6 +76,8 @@
       flex-wrap: wrap;
       gap: 10px;
       min-height: 50px;
+      min-width: 300px;
+      justify-content: flex-start;
     }
 
     .word {
@@ -77,17 +85,13 @@
       background: #ecf0f1;
       border-radius: 5px;
       font-size: 16px;
+      opacity: 1;
+      transition: opacity 0.4s ease;
     }
 
     .correct {
       background-color: #d4edda;
       color: #155724;
-    }
-
-    .current {
-      background-color: #cce5ff;
-      color: #004085;
-      font-weight: bold;
     }
 
     .saved {
@@ -128,7 +132,16 @@
     <button onclick="saveWord()">Guardar palabra</button>
     <button onclick="readAgain()">Repetir palabra</button>
   </div>
-  <input type="text" id="userInput" placeholder="Escribe la palabra aquí" oninput="checkWord()" />
+
+  <div id="wordCounter"></div>
+
+  <input
+    type="text"
+    id="userInput"
+    placeholder="Escribe la palabra aquí"
+    oninput="checkWord()"
+    autocomplete="off"
+  />
 
   <div id="output"></div>
 
@@ -142,11 +155,18 @@
 
     function startTraining() {
       const lyrics = document.getElementById('lyrics').value;
+      if (!lyrics.trim()) {
+        alert('Por favor pega la letra antes de iniciar.');
+        return;
+      }
       words = lyrics.trim().split(/\s+/);
       current = 0;
       saved = [];
       document.getElementById('savedWords').innerHTML = '';
-      updateDisplay();
+      document.getElementById('output').innerHTML = '';
+      document.getElementById('userInput').value = '';
+      document.getElementById('userInput').focus();
+      updateCounter();
       speak(words[current]);
     }
 
@@ -154,32 +174,40 @@
       const output = document.getElementById('output');
       output.innerHTML = '';
 
-      // Mostrar solo palabras correctas + palabra actual
-      for (let i = 0; i <= current && i < words.length; i++) {
+      // Solo mostrar las palabras ya acertadas
+      for (let i = 0; i < current && i < words.length; i++) {
         const span = document.createElement('span');
-        span.className = 'word';
-        if (i < current) span.classList.add('correct');
-        else if (i === current) span.classList.add('current');
+        span.className = 'word correct';
         if (saved.includes(i)) span.classList.add('saved');
         span.textContent = words[i];
         output.appendChild(span);
       }
-
-      document.getElementById('userInput').value = '';
-      document.getElementById('userInput').focus();
     }
 
     function checkWord() {
       const input = document.getElementById('userInput').value.trim().toLowerCase();
+      if (current >= words.length) return;
+
       if (input === words[current].toLowerCase()) {
         current++;
+        updateDisplay();
+        updateCounter();
+        document.getElementById('userInput').value = '';
+
         if (current < words.length) {
-          updateDisplay();
           speak(words[current]);
         } else {
           alert('¡Completado!');
-          updateDisplay();
         }
+      }
+    }
+
+    function updateCounter() {
+      const counter = document.getElementById('wordCounter');
+      if (current < words.length) {
+        counter.textContent = `Palabra a escribir: ${current + 1} de ${words.length}`;
+      } else {
+        counter.textContent = 'Has completado todas las palabras 🎉';
       }
     }
 
@@ -192,21 +220,27 @@
     }
 
     function revealWord() {
-      alert('La palabra es: ' + words[current]);
+      if (current < words.length) {
+        alert('La palabra es: ' + words[current]);
+      } else {
+        alert('¡Ya completaste todas las palabras!');
+      }
     }
 
     function saveWord() {
-      if (!saved.includes(current)) {
-        saved.push(current);
+      if (!saved.includes(current - 1) && current > 0) {
+        saved.push(current - 1);
         updateDisplay();
         const li = document.createElement('li');
-        li.textContent = words[current];
+        li.textContent = words[current - 1];
         document.getElementById('savedWords').appendChild(li);
       }
     }
 
     function readAgain() {
-      speak(words[current]);
+      if (current < words.length) {
+        speak(words[current]);
+      }
     }
   </script>
 </body>
