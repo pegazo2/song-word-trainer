@@ -69,6 +69,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      min-height: 50px;
     }
 
     .word {
@@ -144,6 +145,7 @@
       words = lyrics.trim().split(/\s+/);
       current = 0;
       saved = [];
+      document.getElementById('savedWords').innerHTML = '';
       updateDisplay();
       speak(words[current]);
     }
@@ -151,15 +153,18 @@
     function updateDisplay() {
       const output = document.getElementById('output');
       output.innerHTML = '';
-      words.forEach((word, i) => {
+
+      // Mostrar solo palabras correctas + palabra actual
+      for (let i = 0; i <= current && i < words.length; i++) {
         const span = document.createElement('span');
         span.className = 'word';
         if (i < current) span.classList.add('correct');
-        if (i === current) span.classList.add('current');
+        else if (i === current) span.classList.add('current');
         if (saved.includes(i)) span.classList.add('saved');
-        span.textContent = word;
+        span.textContent = words[i];
         output.appendChild(span);
-      });
+      }
+
       document.getElementById('userInput').value = '';
       document.getElementById('userInput').focus();
     }
