@@ -119,6 +119,9 @@
       border-radius: 6px;
       margin-bottom: 5px;
       color: #7f6000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
@@ -154,6 +157,15 @@
     let current = 0;
     let saved = [];
 
+    // Recuperar desde localStorage al iniciar
+    window.onload = function () {
+      const savedData = localStorage.getItem('savedWords');
+      if (savedData) {
+        saved = JSON.parse(savedData);
+        renderSavedWords();
+      }
+    };
+
     function startTraining() {
       const lyrics = document.getElementById('lyrics').value;
       if (!lyrics.trim()) {
@@ -162,24 +174,21 @@
       }
       words = lyrics.trim().split(/\s+/);
       current = 0;
-      saved = [];
-      document.getElementById('savedWords').innerHTML = '';
       document.getElementById('output').innerHTML = '';
       document.getElementById('userInput').value = '';
       document.getElementById('userInput').focus();
       updateCounter();
-      speak(words[current]);
+      speak(words[current], 0.8);
     }
 
     function updateDisplay() {
       const output = document.getElementById('output');
       output.innerHTML = '';
 
-      // Solo mostrar las palabras ya acertadas
       for (let i = 0; i < current && i < words.length; i++) {
         const span = document.createElement('span');
         span.className = 'word correct';
-        if (saved.includes(i)) span.classList.add('saved');
+        if (saved.includes(words[i])) span.classList.add('saved');
         span.textContent = words[i];
         output.appendChild(span);
       }
@@ -196,7 +205,7 @@
         document.getElementById('userInput').value = '';
 
         if (current < words.length) {
-          speak(words[current]);
+          speak(words[current], 0.8);
         } else {
           alert('¡Completado!');
         }
@@ -212,10 +221,10 @@
       }
     }
 
-    function speak(text) {
+    function speak(text, rate = 0.8) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
-      utterance.rate = 0.8;
+      utterance.rate = rate;
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     }
@@ -229,32 +238,38 @@
     }
 
     function saveWord() {
-      if (!saved.includes(current - 1) && current > 0) {
-        saved.push(current - 1);
-        updateDisplay();
+      const word = words[current - 1];
+      if (!word || saved.includes(word)) return;
+      saved.push(word);
+      localStorage.setItem('savedWords', JSON.stringify(saved));
+      renderSavedWords();
+    }
+
+    function renderSavedWords() {
+      const list = document.getElementById('savedWords');
+      list.innerHTML = '';
+      saved.forEach(word => {
         const li = document.createElement('li');
-        li.textContent = words[current - 1];
-        document.getElementById('savedWords').appendChild(li);
-      }
+        li.textContent = word;
+
+        const btn = document.createElement('button');
+        btn.textContent = '🔊';
+        btn.onclick = () => speak(word, 0.8);
+
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
     }
 
     function readAgainNormal() {
       if (current < words.length) {
-        const utterance = new SpeechSynthesisUtterance(words[current]);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.8; // velocidad normal
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
+        speak(words[current], 0.8);
       }
     }
 
     function readAgainSlow() {
       if (current < words.length) {
-        const utterance = new SpeechSynthesisUtterance(words[current]);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.5; // velocidad lenta
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
+        speak(words[current], 0.5);
       }
     }
   </script>
