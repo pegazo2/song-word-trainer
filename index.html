@@ -130,7 +130,8 @@
     <button onclick="startTraining()">Iniciar</button>
     <button onclick="revealWord()">Revelar palabra</button>
     <button onclick="saveWord()">Guardar palabra</button>
-    <button onclick="readAgain()">Repetir palabra</button>
+    <button onclick="readAgainNormal()">Repetir palabra (normal)</button>
+    <button onclick="readAgainSlow()">Repetir palabra (lenta)</button>
   </div>
 
   <div id="wordCounter"></div>
@@ -237,9 +238,23 @@
       }
     }
 
-    function readAgain() {
+    function readAgainNormal() {
       if (current < words.length) {
-        speak(words[current]);
+        const utterance = new SpeechSynthesisUtterance(words[current]);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8; // velocidad normal
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    function readAgainSlow() {
+      if (current < words.length) {
+        const utterance = new SpeechSynthesisUtterance(words[current]);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.5; // velocidad lenta
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
       }
     }
   </script>
