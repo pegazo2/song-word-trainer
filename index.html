@@ -1,336 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Song Word Trainer</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f4f4f4;
+    }
+    h1 {
       color: #333;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1rem 2rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
     }
-    h2 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 1rem;
-    }
-    textarea {
-      width: 100%;
-      height: 140px;
-      padding: 1rem;
-      font-size: 1rem;
-      border: 1.8px solid #ccc;
-      border-radius: 6px;
-      resize: vertical;
-      transition: border-color 0.3s ease;
-    }
-    textarea:focus {
-      outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
-    }
-    button {
-      margin: 12px 6px 24px 0;
-      padding: 0.55rem 1.3rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #3498db;
-      color: white;
-      transition: background-color 0.25s ease;
-    }
-    button:hover {
-      background-color: #2980b9;
+    input, button {
+      padding: 0.5rem;
+      margin: 0.3rem 0;
     }
     #output {
-      font-size: 1.25rem;
-      line-height: 1.6;
-      user-select: none;
-      margin-bottom: 20px;
-    }
-    .word {
-      display: inline-block;
-      margin: 6px 8px 6px 0;
-      padding: 8px 14px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      cursor: pointer;
-      position: relative;
-      transition: background-color 0.3s ease;
-    }
-    .word:hover {
-      background-color: #d0e8ff;
-    }
-    .correct {
-      background-color: #d4edda;
-      color: #155724;
-      cursor: default;
-    }
-    .current {
-      border: 2px solid #2980b9;
-      background-color: #eaf6ff;
-      font-weight: 600;
-    }
-    .saved {
-      font-weight: bold;
-      text-decoration: underline;
-      color: #8e44ad;
-    }
-    .translation {
-      font-size: 0.85rem;
-      color: #7f8c8d;
-      margin-top: 4px;
-      text-align: center;
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: 100%;
-      white-space: nowrap;
+      margin-top: 1rem;
+      padding: 1rem;
       background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 2px 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 10;
-    }
-    .word.show-translation .translation {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #userInput {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.2rem;
       border-radius: 6px;
-      border: 1.5px solid #ccc;
-      box-sizing: border-box;
-      margin-bottom: 1.5rem;
-      transition: border-color 0.3s ease;
-    }
-    #userInput:focus {
-      border-color: #3498db;
-      outline: none;
-      box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
-    }
-    #savedWords {
-      list-style: none;
-      padding-left: 0;
-      color: #6c3483;
-    }
-    #savedWords li {
-      margin-bottom: 8px;
-      font-size: 1.1rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <h2>🎵 Song Word Trainer</h2>
-  <p>Pega la letra de la canción (en inglés):</p>
-  <textarea id="lyrics"></textarea><br />
-  <button onclick="startTraining()">Iniciar</button>
-  <button onclick="revealWord()">Revelar palabra</button>
-  <button onclick="saveWord()">Guardar palabra</button>
-  <button onclick="readAgain()">Repetir palabra</button>
-  <input type="text" id="userInput" placeholder="Escribe la palabra aquí" oninput="checkWord()" autocomplete="off" /><br />
+  <h1>🎵 Song Word Trainer</h1>
+
+  <label for="wordInput">Palabra en inglés:</label><br />
+  <input type="text" id="wordInput" placeholder="Ej: love" />
+  <button onclick="searchSong()">Buscar en canción</button>
 
   <div id="output"></div>
 
-  <h3>📌 Palabras guardadas:</h3>
-  <ul id="savedWords"></ul>
-
-  <hr />
-  <h2>💬 Chat con ChatGPT</h2>
-  <input type="text" id="chatInput" placeholder="Escribe tu pregunta aquí" />
-  <button onclick="sendMessage()">Enviar</button>
-  <div id="chatResponse" style="margin-top:1rem; padding:1rem; background:#eef; border-radius:6px;"></div>
-
   <script>
-    const dictionary = {
-      "there's": "hay",
-      "a": "un/una",
-      "stranger": "extraño",
-      "in": "en",
-      "my": "mi",
-      "bed": "cama",
-      "pounding": "golpeando",
-      "head": "cabeza",
-      "glitter": "brillo",
-      "all": "todo",
-      "over": "sobre",
-      "the": "el/la",
-      "room": "habitación",
-      "pink": "rosado",
-      "flamingos": "flamencos",
-      "pool": "piscina",
-      "i": "yo",
-      "smell": "oler",
-      "like": "como",
-      "minibar": "minibar",
-      "dj's": "dj's",
-      "passed": "pasado",
-      "out": "fuera",
-      "yard": "patio",
-      "barbie's": "barbie's",
-      "on": "en",
-      "barbeque": "parrilla",
-      "hickie": "chupetón",
-      "or": "o",
-      "bruise": "moretón",
-      "pictures": "fotos",
-      "last": "último",
-      "night": "noche",
-      "ended": "terminó",
-      "up": "arriba",
-      "online": "en línea",
-      "i'm": "yo soy",
-      "screwed": "arruinado",
-      "oh": "oh",
-      "well": "bueno",
-      "it's": "es",
-      "black": "negro",
-      "top": "parte superior",
-      "blur": "borroso",
-      "but": "pero",
-      "pretty": "bastante",
-      "sure": "seguro",
-      "it": "eso",
-      "ruled": "dominó",
-      // agrega más según quieras
-    };
+    const canciones = [
+      { titulo: "Let it be", letra: "When I find myself in times of trouble Mother Mary comes to me Speaking words of wisdom, let it be..." },
+      { titulo: "Imagine", letra: "Imagine all the people Living life in peace..." },
+      { titulo: "Bohemian Rhapsody", letra: "Is this the real life? Is this just fantasy? Caught in a landside, no escape from reality..." },
+      { titulo: "Hey Jude", letra: "Hey Jude, don't make it bad Take a sad song and make it better..." },
+      { titulo: "Love me do", letra: "Love, love me do You know I love you..." },
+    ];
 
-    let words = [];
-    let current = 0;
-    let saved = [];
+    function searchSong() {
+      const word = document.getElementById("wordInput").value.trim().toLowerCase();
+      const output = document.getElementById("output");
+      output.innerHTML = "";
 
-    function startTraining() {
-      const lyrics = document.getElementById('lyrics').value;
-      if (!lyrics.trim()) {
-        alert('Por favor, pega la letra primero.');
-        return;
-      }
-      words = lyrics.trim().split(/\s+/);
-      current = 0;
-      saved = [];
-      updateDisplay();
-      speak(words[current]);
-    }
-
-    function updateDisplay() {
-      const output = document.getElementById('output');
-      output.innerHTML = '';
-      words.forEach((word, i) => {
-        const cleanWord = word.toLowerCase().replace(/[.,!?]/g, ''); // quitar signos para buscar traducción
-        const translation = dictionary[cleanWord] || '—';
-        const span = document.createElement('span');
-        span.className = 'word';
-        if (i < current) span.classList.add('correct');
-        if (i === current) span.classList.add('current');
-        if (saved.includes(i)) span.classList.add('saved');
-        span.textContent = word;
-
-        // Crear el elemento para la traducción (invisible hasta click)
-        const transSpan = document.createElement('span');
-        transSpan.className = 'translation';
-        transSpan.textContent = translation;
-
-        span.appendChild(transSpan);
-
-        // Mostrar traducción al hacer clic y ocultar si ya está visible
-        span.onclick = () => {
-          if (span.classList.contains('show-translation')) {
-            span.classList.remove('show-translation');
-          } else {
-            // Ocultar otras traducciones abiertas
-            document.querySelectorAll('.word.show-translation').forEach(el => el.classList.remove('show-translation'));
-            span.classList.add('show-translation');
-          }
-        };
-
-        output.appendChild(span);
-      });
-      document.getElementById('userInput').value = '';
-      document.getElementById('userInput').focus();
-    }
-
-    function checkWord() {
-      const input = document.getElementById('userInput').value.trim().toLowerCase();
-      const cleanWord = words[current].toLowerCase().replace(/[.,!?]/g, '');
-      if (input === cleanWord) {
-        current++;
-        if (current < words.length) {
-          updateDisplay();
-          speak(words[current]);
-        } else {
-          alert('🎉 ¡Completado!');
-          updateDisplay();
-        }
-      }
-    }
-
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.8;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
-    }
-
-    function revealWord() {
-      alert('La palabra es: ' + words[current]);
-    }
-
-    function saveWord() {
-      if (!saved.includes(current)) {
-        saved.push(current);
-        updateDisplay();
-        const li = document.createElement('li');
-        li.textContent = words[current];
-        document.getElementById('savedWords').appendChild(li);
-      }
-    }
-
-    function readAgain() {
-      speak(words[current]);
-    }
-
-    // --- Aquí comienza la función para chat con ChatGPT ---
-    async function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const responseDiv = document.getElementById('chatResponse');
-      const message = input.value.trim();
-
-      if (!message) {
-        alert('Por favor escribe una pregunta');
+      if (!word) {
+        output.innerHTML = "<strong>Por favor, escribe una palabra.</strong>";
         return;
       }
 
-      try {
-        const response = await fetch('https://sixty-towns-kiss.loca.lt/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message }),
+      const resultados = canciones.filter(cancion =>
+        cancion.letra.toLowerCase().includes(word)
+      );
+
+      if (resultados.length === 0) {
+        output.innerHTML = `<strong>No se encontró la palabra "${word}" en las canciones.</strong>`;
+      } else {
+        resultados.forEach(cancion => {
+          const textoResaltado = cancion.letra.replace(
+            new RegExp(`(${word})`, "gi"),
+            "<mark>$1</mark>"
+          );
+          output.innerHTML += `<h3>${cancion.titulo}</h3><p>${textoResaltado}</p>`;
         });
-
-        if (!response.ok) {
-          throw new Error('Error en la respuesta del servidor');
-        }
-
-        const data = await response.json();
-        responseDiv.textContent = data.reply;
-      } catch (error) {
-        console.error(error);
-        responseDiv.textContent = 'Error al obtener respuesta del servidor.';
       }
     }
   </script>
