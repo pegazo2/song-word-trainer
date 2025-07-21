@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Practicar Palabras Guardadas</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #wordDisplay {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    input {
+      padding: 8px;
+      font-size: 18px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      margin: 0.3rem;
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h2>Práctica con Palabras Guardadas</h2>
+  <div id="wordDisplay">Presiona "Siguiente palabra" para comenzar</div>
+  <input type="text" id="userInput" placeholder="Escribe la palabra aquí..." autocomplete="off" />
+  <div>
+    <button id="repeatNormal">🔊 Repetir normal</button>
+    <button id="repeatSlow">🐢 Repetir lento</button>
+    <button id="nextWord">⏭️ Siguiente palabra</button>
+  </div>
+  <script>
+    let savedWords = JSON.parse(localStorage.getItem('savedWords')) || [];
+    let currentIndex = -1;
+    const wordDisplay = document.getElementById('wordDisplay');
+    const userInput = document.getElementById('userInput');
+
+    function speakWord(word, rate=1) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = rate;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+    function nextWord() {
+      if (savedWords.length === 0) {
+        alert("No hay palabras guardadas para practicar.");
+        wordDisplay.textContent = "No hay palabras guardadas.";
+        userInput.disabled = true;
+        return;
+      }
+      currentIndex = (currentIndex + 1) % savedWords.length;
+      userInput.value = "";
+      wordDisplay.textContent = "Escribe la palabra aquí:";
+      speakWord(savedWords[currentIndex], 0.8);
+      userInput.disabled = false;
+      userInput.focus();
+    }
+
+    userInput.addEventListener('input', () => {
+      if (savedWords.length === 0) return;
+      if (userInput.value.trim().toLowerCase() === savedWords[currentIndex].toLowerCase()) {
+        wordDisplay.textContent = savedWords[currentIndex];
+      }
+    });
+
+    document.getElementById('repeatNormal').addEventListener('click', () => {
+      if (currentIndex >= 0 && savedWords.length > 0) {
+        speakWord(savedWords[currentIndex], 0.8);
+      }
+    });
+
+    document.getElementById('repeatSlow').addEventListener('click', () => {
+      if (currentIndex >= 0 && savedWords.length > 0) {
+        speakWord(savedWords[currentIndex], 0.5);
+      }
+    });
+
+    document.getElementById('nextWord').addEventListener('click', nextWord);
+  </script>
+</body>
+</html>
