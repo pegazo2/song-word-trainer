@@ -139,135 +139,157 @@
 
   <h3>📌 Palabras guardadas:</h3>
   <ul id="savedWords"></ul>
+  
+  <p id="savedCount" style="margin-top: 0.5rem;">Palabras guardadas: 0</p>
+<button onclick="descargarPalabras()">⬇️ Descargar palabras (.txt)</button>
 
-  <script>
-    let words = [];
-    let current = 0;
-    let saved = [];
+ <script>
+  let words = [];
+  let current = 0;
+  let saved = [];
 
-    // Recuperar desde localStorage al iniciar
-    window.onload = function () {
-      const savedData = localStorage.getItem('savedWords');
-      if (savedData) {
-        saved = JSON.parse(savedData);
-        renderSavedWords();
-      }
-    };
+  // Al cargar la página, recupera palabras guardadas y actualiza contador
+  window.onload = function () {
+    const savedData = localStorage.getItem('savedWords');
+    if (savedData) {
+      saved = JSON.parse(savedData);
+      renderSavedWords();
+    }
+    actualizarContadorGuardadas();
+  };
 
-    function startTraining() {
-      const lyrics = document.getElementById('lyrics').value;
-      if (!lyrics.trim()) {
-        alert('Por favor pega la letra antes de iniciar.');
-        return;
-      }
-      words = lyrics.trim().split(/\s+/);
-      current = 0;
-      document.getElementById('output').innerHTML = '';
-      document.getElementById('userInput').value = '';
-      document.getElementById('userInput').disabled = false;
-      document.getElementById('userInput').focus();
+  function startTraining() {
+    const lyrics = document.getElementById('lyrics').value;
+    if (!lyrics.trim()) {
+      alert('Por favor pega la letra antes de iniciar.');
+      return;
+    }
+    words = lyrics.trim().split(/\s+/);
+    current = 0;
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('userInput').value = '';
+    document.getElementById('userInput').disabled = false;
+    document.getElementById('userInput').focus();
+    updateCounter();
+    speak(words[current], 0.8);
+  }
+
+  function updateDisplay() {
+    const output = document.getElementById('output');
+    output.innerHTML = '';
+
+    for (let i = 0; i < current && i < words.length; i++) {
+      const span = document.createElement('span');
+      span.className = 'word correct';
+      if (saved.includes(words[i])) span.classList.add('saved');
+      span.textContent = words[i];
+      output.appendChild(span);
+    }
+  }
+
+  function checkWord() {
+    const input = document.getElementById('userInput').value.trim().toLowerCase();
+    if (current >= words.length) return;
+
+    if (input === words[current].toLowerCase()) {
+      current++;
+      updateDisplay();
       updateCounter();
-      speak(words[current], 0.8);
-    }
+      document.getElementById('userInput').value = '';
 
-    function updateDisplay() {
-      const output = document.getElementById('output');
-      output.innerHTML = '';
-
-      for (let i = 0; i < current && i < words.length; i++) {
-        const span = document.createElement('span');
-        span.className = 'word correct';
-        if (saved.includes(words[i])) span.classList.add('saved');
-        span.textContent = words[i];
-        output.appendChild(span);
-      }
-    }
-
-    function checkWord() {
-      const input = document.getElementById('userInput').value.trim().toLowerCase();
-      if (current >= words.length) return;
-
-      if (input === words[current].toLowerCase()) {
-        current++;
-        updateDisplay();
-        updateCounter();
-        document.getElementById('userInput').value = '';
-
-        if (current < words.length) {
-          speak(words[current], 0.8);
-        } else {
-          alert('¡Completado!');
-          document.getElementById('userInput').disabled = true;
-        }
-      }
-    }
-
-    function updateCounter() {
-      const counter = document.getElementById('wordCounter');
-      if (current < words.length) {
-        counter.textContent = `Palabra a escribir: ${current + 1} de ${words.length}`;
-      } else {
-        counter.textContent = 'Has completado todas las palabras 🎉';
-      }
-    }
-
-    function speak(text, rate = 0.8) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = rate;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
-    }
-
-    function revealWord() {
-      if (current < words.length) {
-        alert('La palabra es: ' + words[current]);
-      } else {
-        alert('¡Ya completaste todas las palabras!');
-      }
-    }
-
-    function saveWord() {
-      const word = words[current - 1];
-      if (!word) return;
-      if (!saved.includes(word)) {
-        saved.push(word);
-        localStorage.setItem('savedWords', JSON.stringify(saved));
-        renderSavedWords();
-      }
-    }
-
-    function renderSavedWords() {
-      const list = document.getElementById('savedWords');
-      list.innerHTML = '';
-      saved.forEach(word => {
-        const li = document.createElement('li');
-        li.textContent = word;
-
-        const btn = document.createElement('button');
-        btn.textContent = '🔊';
-        btn.onclick = () => speak(word, 0.8);
-
-        li.appendChild(btn);
-        list.appendChild(li);
-      });
-    }
-
-    function readAgainNormal() {
       if (current < words.length) {
         speak(words[current], 0.8);
+      } else {
+        alert('¡Completado!');
+        document.getElementById('userInput').disabled = true;
       }
     }
+  }
 
-    function readAgainSlow() {
-      if (current < words.length) {
-        speak(words[current], 0.5);
-      }
+  function updateCounter() {
+    const counter = document.getElementById('wordCounter');
+    if (current < words.length) {
+      counter.textContent = `Palabra a escribir: ${current + 1} de ${words.length}`;
+    } else {
+      counter.textContent = 'Has completado todas las palabras 🎉';
     }
+  }
 
-    function openPractice() {
-      window.open('practice-saved.html', '_blank');
+  function speak(text, rate = 0.8) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = rate;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  }
+
+  function revealWord() {
+    if (current < words.length) {
+      alert('La palabra es: ' + words[current]);
+    } else {
+      alert('¡Ya completaste todas las palabras!');
     }
-  </script>
+  }
+
+  function saveWord() {
+    const word = words[current - 1];
+    if (!word) return;
+    if (!saved.includes(word)) {
+      saved.push(word);
+      localStorage.setItem('savedWords', JSON.stringify(saved));
+      renderSavedWords();
+      actualizarContadorGuardadas(); // Actualiza contador al guardar
+    }
+  }
+
+  function renderSavedWords() {
+    const list = document.getElementById('savedWords');
+    list.innerHTML = '';
+    saved.forEach(word => {
+      const li = document.createElement('li');
+      li.textContent = word;
+
+      const btn = document.createElement('button');
+      btn.textContent = '🔊';
+      btn.onclick = () => speak(word, 0.8);
+
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+  }
+
+  function readAgainNormal() {
+    if (current < words.length) {
+      speak(words[current], 0.8);
+    }
+  }
+
+  function readAgainSlow() {
+    if (current < words.length) {
+      speak(words[current], 0.5);
+    }
+  }
+
+  function openPractice() {
+    window.open('practice-saved.html', '_blank');
+  }
+
+  function actualizarContadorGuardadas() {
+    const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
+    document.getElementById('savedCount').textContent = `Palabras guardadas: ${guardadas.length}`;
+  }
+
+  function descargarPalabras() {
+    const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
+    const texto = guardadas.join('\n');  // Solo las palabras, sin traducción
+    const blob = new Blob([texto], { type: 'text/plain' });
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = 'palabras_guardadas.txt';
+    enlace.click();
+  }
+</script>
+
+
 </body>
 </html>
