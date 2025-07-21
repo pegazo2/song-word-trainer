@@ -1,277 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Song Word Trainer</title>
+  <title>Practicar Palabras</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f7fa;
-      margin: 0;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: sans-serif;
+      padding: 20px;
     }
-
-    h2 {
-      color: #2c3e50;
-      margin-bottom: 1rem;
+    #wordDisplay {
+      font-size: 24px;
+      margin-bottom: 10px;
     }
-
-    textarea {
-      width: 100%;
-      max-width: 600px;
-      height: 150px;
-      padding: 1rem;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      margin-bottom: 1rem;
-      resize: vertical;
+    #inputArea {
+      margin-bottom: 10px;
     }
-
-    #wordCounter {
-      margin-top: 1rem;
+    input {
+      padding: 8px;
       font-size: 18px;
-      color: #555;
-    }
-
-    input[type="text"] {
       width: 100%;
-      max-width: 600px;
-      padding: 0.5rem;
-      font-size: 16px;
-      margin: 1rem 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
     }
-
     button {
-      padding: 0.6rem 1.2rem;
+      margin-top: 10px;
+      padding: 8px;
       font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background-color: #3498db;
-      color: white;
-      margin: 0.3rem;
-      cursor: pointer;
-      transition: background-color 0.3s;
     }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
-    #output {
-      margin-top: 1rem;
-      max-width: 700px;
-      padding: 1rem;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      min-height: 50px;
-      min-width: 300px;
-      justify-content: flex-start;
-    }
-
-    .word {
-      padding: 6px 10px;
-      background: #ecf0f1;
-      border-radius: 5px;
-      font-size: 16px;
-      opacity: 1;
-      transition: opacity 0.4s ease;
-    }
-
-    .correct {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .saved {
-      border: 2px dashed #f39c12;
-      background-color: #fff9e6;
-      color: #b57300;
-    }
-
-    h3 {
-      margin-top: 2rem;
-      color: #2c3e50;
-    }
-
-    ul#savedWords {
-      list-style: none;
-      padding: 0;
-      max-width: 600px;
-      margin-top: 0.5rem;
-    }
-
-    ul#savedWords li {
-      background: #fdf6e3;
-      border: 1px solid #f0e2b6;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 5px;
-      color: #7f6000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    #savedWordsList {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h2>🎵 Song Word Trainer</h2>
-  <p>Pega la letra de la canción (en inglés):</p>
-  <textarea id="lyrics"></textarea><br />
-  <div>
-    <button onclick="startTraining()">Iniciar</button>
-    <button onclick="revealWord()">Revelar palabra</button>
-    <button onclick="saveWord()">Guardar palabra</button>
-    <button onclick="readAgainNormal()">Repetir palabra (normal)</button>
-    <button onclick="readAgainSlow()">Repetir palabra (lenta)</button>
+  <h1>Práctica de palabras</h1>
+  <label>
+    <input type="checkbox" id="practiceSavedOnly" />
+    Practicar solo palabras guardadas
+  </label>
+  <div id="wordDisplay">Escribe la palabra aquí:</div>
+  <div id="inputArea">
+    <input type="text" id="userInput" placeholder="Escribe la palabra aquí..." />
+  </div>
+  <button id="repeatNormal">🔊 Repetir</button>
+  <button id="repeatSlow">🐢 Repetir lento</button>
+  <button id="saveWord">⭐ Guardar palabra</button>
+  <button id="nextWord">⏭️ Siguiente palabra</button>
+
+  <div id="savedWordsList">
+    <h2>Palabras guardadas:</h2>
+    <ul id="wordList"></ul>
   </div>
 
-  <div id="wordCounter"></div>
-
-  <input
-    type="text"
-    id="userInput"
-    placeholder="Escribe la palabra aquí"
-    oninput="checkWord()"
-    autocomplete="off"
-  />
-
-  <div id="output"></div>
-
-  <h3>📌 Palabras guardadas:</h3>
-  <ul id="savedWords"></ul>
-
   <script>
-    let words = [];
-    let current = 0;
-    let saved = [];
+    const allWords = [
+      "apple", "banana", "computer", "school", "beautiful", "challenge",
+      "future", "learning", "amazing", "language"
+    ];
 
-    // Recuperar desde localStorage al iniciar
-    window.onload = function () {
-      const savedData = localStorage.getItem('savedWords');
-      if (savedData) {
-        saved = JSON.parse(savedData);
-        renderSavedWords();
-      }
-    };
+    let savedWords = JSON.parse(localStorage.getItem("savedWords")) || [];
+    let currentWord = "";
+    const wordDisplay = document.getElementById("wordDisplay");
+    const userInput = document.getElementById("userInput");
+    const wordList = document.getElementById("wordList");
 
-    function startTraining() {
-      const lyrics = document.getElementById('lyrics').value;
-      if (!lyrics.trim()) {
-        alert('Por favor pega la letra antes de iniciar.');
-        return;
-      }
-      words = lyrics.trim().split(/\s+/);
-      current = 0;
-      document.getElementById('output').innerHTML = '';
-      document.getElementById('userInput').value = '';
-      document.getElementById('userInput').focus();
-      updateCounter();
-      speak(words[current], 0.8);
-    }
-
-    function updateDisplay() {
-      const output = document.getElementById('output');
-      output.innerHTML = '';
-
-      for (let i = 0; i < current && i < words.length; i++) {
-        const span = document.createElement('span');
-        span.className = 'word correct';
-        if (saved.includes(words[i])) span.classList.add('saved');
-        span.textContent = words[i];
-        output.appendChild(span);
-      }
-    }
-
-    function checkWord() {
-      const input = document.getElementById('userInput').value.trim().toLowerCase();
-      if (current >= words.length) return;
-
-      if (input === words[current].toLowerCase()) {
-        current++;
-        updateDisplay();
-        updateCounter();
-        document.getElementById('userInput').value = '';
-
-        if (current < words.length) {
-          speak(words[current], 0.8);
-        } else {
-          alert('¡Completado!');
-        }
-      }
-    }
-
-    function updateCounter() {
-      const counter = document.getElementById('wordCounter');
-      if (current < words.length) {
-        counter.textContent = `Palabra a escribir: ${current + 1} de ${words.length}`;
-      } else {
-        counter.textContent = 'Has completado todas las palabras 🎉';
-      }
-    }
-
-    function speak(text, rate = 0.8) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
+    function speakWord(word, rate = 1) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "en-US";
       utterance.rate = rate;
-      speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     }
 
-    function revealWord() {
-      if (current < words.length) {
-        alert('La palabra es: ' + words[current]);
-      } else {
-        alert('¡Ya completaste todas las palabras!');
+    function pickWord() {
+      const useSaved = document.getElementById("practiceSavedOnly").checked;
+      const pool = useSaved && savedWords.length > 0 ? savedWords : allWords;
+      currentWord = pool[Math.floor(Math.random() * pool.length)];
+      wordDisplay.textContent = "Escribe la palabra aquí:";
+      userInput.value = "";
+      speakWord(currentWord);
+    }
+
+    document.getElementById("nextWord").addEventListener("click", pickWord);
+
+    document.getElementById("repeatNormal").addEventListener("click", () => {
+      speakWord(currentWord, 1);
+    });
+
+    document.getElementById("repeatSlow").addEventListener("click", () => {
+      speakWord(currentWord, 0.5);
+    });
+
+    document.getElementById("saveWord").addEventListener("click", () => {
+      if (!savedWords.includes(currentWord)) {
+        savedWords.push(currentWord);
+        localStorage.setItem("savedWords", JSON.stringify(savedWords));
+        updateSavedList();
       }
-    }
+    });
 
-    function saveWord() {
-      const word = words[current - 1];
-      if (!word || saved.includes(word)) return;
-      saved.push(word);
-      localStorage.setItem('savedWords', JSON.stringify(saved));
-      renderSavedWords();
-    }
-
-    function renderSavedWords() {
-      const list = document.getElementById('savedWords');
-      list.innerHTML = '';
-      saved.forEach(word => {
-        const li = document.createElement('li');
-        li.textContent = word;
-
-        const btn = document.createElement('button');
-        btn.textContent = '🔊';
-        btn.onclick = () => speak(word, 0.8);
-
-        li.appendChild(btn);
-        list.appendChild(li);
+    function updateSavedList() {
+      wordList.innerHTML = "";
+      savedWords.forEach((word, index) => {
+        const li = document.createElement("li");
+        li.textContent = word + " ";
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "❌";
+        delBtn.onclick = () => {
+          savedWords.splice(index, 1);
+          localStorage.setItem("savedWords", JSON.stringify(savedWords));
+          updateSavedList();
+        };
+        const playBtn = document.createElement("button");
+        playBtn.textContent = "🔊";
+        playBtn.onclick = () => {
+          speakWord(word);
+        };
+        li.appendChild(playBtn);
+        li.appendChild(delBtn);
+        wordList.appendChild(li);
       });
     }
 
-    function readAgainNormal() {
-      if (current < words.length) {
-        speak(words[current], 0.8);
+    userInput.addEventListener("input", () => {
+      if (userInput.value.trim().toLowerCase() === currentWord.toLowerCase()) {
+        wordDisplay.textContent = currentWord;
       }
-    }
+    });
 
-    function readAgainSlow() {
-      if (current < words.length) {
-        speak(words[current], 0.5);
-      }
-    }
+    window.onload = () => {
+      updateSavedList();
+      pickWord();
+    };
   </script>
 </body>
 </html>
