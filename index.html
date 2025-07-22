@@ -99,17 +99,33 @@
       max-width: 600px;
       margin-top: 0.5rem;
     }
-    ul#savedWords li {
-      background: #fdf6e3;
-      border: 1px solid #f0e2b6;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 5px;
-      color: #7f6000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+   ul#savedWords {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+  margin-top: 0.5rem;
+  display: flex;               /* Flexbox para fila */
+  flex-direction: row;         /* Dirección horizontal */
+  gap: 10px;                   /* Espacio entre palabras */
+  overflow-x: auto;            /* Scroll horizontal si hay muchas palabras */
+  white-space: nowrap;         /* Evita salto de línea */
+  border: 1px solid #ccc;      /* Opcional: borde para delimitar área */
+  border-radius: 6px;
+  background: #fdf6e3;
+}
+
+ul#savedWords li {
+  background: #fdf6e3;
+  border: 1px solid #f0e2b6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #7f6000;
+  display: inline-flex;        /* Para que texto y botón estén alineados horizontalmente */
+  align-items: center;
+  white-space: nowrap;         /* Texto no se parte */
+  margin-bottom: 0;            /* Quita margen inferior porque no será vertical */
+}
+
   </style>
 </head>
 <body>
