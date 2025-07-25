@@ -53,18 +53,20 @@
   <div>
     <button id="repeatNormal">🔊 Repetir normal</button>
     <button id="repeatSlow">🐢 Repetir lento</button>
+    <button id="revealWord">👁️ Revelar palabra</button> <!-- ✅ NUEVO BOTÓN -->
     <button id="nextWord">⏭️ Siguiente palabra</button>
     <button id="backIndex">🏠 Volver a inicio</button>
   </div>
   <script>
     let savedWords = JSON.parse(localStorage.getItem('savedWords')) || [];
     let currentIndex = -1;
-    let wordsSeen = new Set();  // Para llevar registro de palabras ya mostradas
+    let wordsSeen = new Set();
 
     const wordDisplay = document.getElementById('wordDisplay');
     const userInput = document.getElementById('userInput');
     const btnRepeatNormal = document.getElementById('repeatNormal');
     const btnRepeatSlow = document.getElementById('repeatSlow');
+    const btnRevealWord = document.getElementById('revealWord'); // ✅ botón nuevo
     const btnNextWord = document.getElementById('nextWord');
     const btnBackIndex = document.getElementById('backIndex');
     const progress = document.getElementById('progress');
@@ -102,7 +104,6 @@
         return;
       }
 
-      // Elegir palabra aleatoria que no se haya mostrado aún
       let randomIndex;
       do {
         randomIndex = Math.floor(Math.random() * savedWords.length);
@@ -119,11 +120,13 @@
       updateProgress();
     }
 
+    // 🔁 MODIFICADO: respuesta correcta = pasar a la siguiente palabra automáticamente
     userInput.addEventListener('input', () => {
       if (savedWords.length === 0 || currentIndex < 0) return;
       if (userInput.value.trim().toLowerCase() === savedWords[currentIndex].toLowerCase()) {
         wordDisplay.textContent = `¡Correcto! La palabra es: ${savedWords[currentIndex]}`;
-        userInput.disabled = true; // Espera a que presionen siguiente
+        userInput.disabled = true;
+        setTimeout(() => nextWord(), 1000); // pasa a la siguiente automáticamente
       }
     });
 
@@ -136,6 +139,14 @@
     btnRepeatSlow.addEventListener('click', () => {
       if (currentIndex >= 0 && savedWords.length > 0) {
         speakWord(savedWords[currentIndex], 0.5);
+      }
+    });
+
+    // ✅ FUNCIÓN NUEVA: revelar palabra actual
+    btnRevealWord.addEventListener('click', () => {
+      if (currentIndex >= 0 && savedWords.length > 0) {
+        wordDisplay.textContent = `La palabra es: ${savedWords[currentIndex]}`;
+        userInput.disabled = true;
       }
     });
 
