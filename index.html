@@ -309,63 +309,84 @@ ul#savedWords li button:hover {
     }
   }
 
-  function saveWord() {
-    const word = words[current - 1];
-    if (!word) return;
-    if (!saved.includes(word)) {
-      saved.push(word);
-      localStorage.setItem('savedWords', JSON.stringify(saved));
-      renderSavedWords();
-      actualizarContadorGuardadas(); // Actualiza contador al guardar
-    }
+ function saveWord() {
+  const word = words[current - 1];
+  if (!word) return;
+  if (!saved.includes(word)) {
+    saved.push(word);
+    localStorage.setItem('savedWords', JSON.stringify(saved));
+    renderSavedWords();
+    actualizarContadorGuardadas(); // Actualiza contador al guardar
   }
+}
 
-  function renderSavedWords() {
-    const list = document.getElementById('savedWords');
-    list.innerHTML = '';
-    saved.forEach(word => {
-      const li = document.createElement('li');
-      li.textContent = word;
+// ✅ FUNCIÓN MODIFICADA con botón para escuchar 🔊 y eliminar ❌
+function renderSavedWords() {
+  const list = document.getElementById('savedWords');
+  list.innerHTML = '';
+  saved.forEach((word, index) => {
+    const li = document.createElement('li');
+    li.textContent = word;
 
-      const btn = document.createElement('button');
-      btn.textContent = '🔊';
-      btn.onclick = () => speak(word, 0.8);
+    // 🔊 Botón para escuchar
+    const btnSpeak = document.createElement('button');
+    btnSpeak.textContent = '🔊';
+    btnSpeak.onclick = () => speak(word, 0.8);
 
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
+    // ❌ Botón para eliminar
+    const btnDelete = document.createElement('button');
+    btnDelete.textContent = '❌';
+    btnDelete.style.backgroundColor = '#e74c3c';
+    btnDelete.style.marginLeft = '10px';
+    btnDelete.onclick = () => deleteSavedWord(index);
+
+    li.appendChild(btnSpeak);
+    li.appendChild(btnDelete);
+    list.appendChild(li);
+  });
+}
+
+function readAgainNormal() {
+  if (current < words.length) {
+    speak(words[current], 0.8);
   }
+}
 
-  function readAgainNormal() {
-    if (current < words.length) {
-      speak(words[current], 0.8);
-    }
+function readAgainSlow() {
+  if (current < words.length) {
+    speak(words[current], 0.5);
   }
+}
 
-  function readAgainSlow() {
-    if (current < words.length) {
-      speak(words[current], 0.5);
-    }
-  }
+function openPractice() {
+  window.open('practice-saved.html', '_blank');
+}
 
-  function openPractice() {
-    window.open('practice-saved.html', '_blank');
-  }
+function actualizarContadorGuardadas() {
+  const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
+  document.getElementById('savedCount').textContent = `Palabras guardadas: ${guardadas.length}`;
+}
 
-  function actualizarContadorGuardadas() {
-    const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
-    document.getElementById('savedCount').textContent = `Palabras guardadas: ${guardadas.length}`;
-  }
+function descargarPalabras() {
+  const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
+  const texto = guardadas.join('\n');  // Solo las palabras, sin traducción
+  const blob = new Blob([texto], { type: 'text/plain' });
+  const enlace = document.createElement('a');
+  enlace.href = URL.createObjectURL(blob);
+  enlace.download = 'palabras_guardadas.txt';
+  enlace.click();
+}
 
-  function descargarPalabras() {
-    const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
-    const texto = guardadas.join('\n');  // Solo las palabras, sin traducción
-    const blob = new Blob([texto], { type: 'text/plain' });
-    const enlace = document.createElement('a');
-    enlace.href = URL.createObjectURL(blob);
-    enlace.download = 'palabras_guardadas.txt';
-    enlace.click();
+// ✅ NUEVA FUNCIÓN: eliminar palabra guardada
+function deleteSavedWord(index) {
+  if (confirm(`¿Eliminar "${saved[index]}" de las palabras guardadas?`)) {
+    saved.splice(index, 1); // Elimina del array
+    localStorage.setItem('savedWords', JSON.stringify(saved)); // Actualiza almacenamiento
+    renderSavedWords(); // Redibuja la lista
+    actualizarContadorGuardadas(); // Actualiza el contador
   }
+}
+
 </script>
 
 
