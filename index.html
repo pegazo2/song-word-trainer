@@ -186,8 +186,6 @@ ul#savedWords li button {
 ul#savedWords li button:hover {
   background-color: #1c5d8b;
 }
-
-
   </style>
 </head>
 <body>
@@ -219,7 +217,7 @@ ul#savedWords li button:hover {
   <ul id="savedWords"></ul>
   
   <p id="savedCount" style="margin-top: 0.5rem;">Palabras guardadas: 0</p>
-<button onclick="descargarPalabras()">⬇️ Descargar palabras (.txt)</button>
+  <button onclick="descargarPalabras()">⬇️ Descargar palabras (.txt)</button>
 
  <script>
   let words = [];
@@ -242,7 +240,11 @@ ul#savedWords li button:hover {
       alert('Por favor pega la letra antes de iniciar.');
       return;
     }
-    words = lyrics.trim().split(/\s+/);
+    
+    // Limpiar el texto de signos de puntuación
+    const cleanedLyrics = lyrics.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+    
+    words = cleanedLyrics.trim().split(/\s+/);
     current = 0;
     document.getElementById('output').innerHTML = '';
     document.getElementById('userInput').value = '';
@@ -316,11 +318,10 @@ ul#savedWords li button:hover {
     saved.push(word);
     localStorage.setItem('savedWords', JSON.stringify(saved));
     renderSavedWords();
-    actualizarContadorGuardadas(); // Actualiza contador al guardar
+    actualizarContadorGuardadas();
   }
 }
 
-// ✅ FUNCIÓN MODIFICADA con botón para escuchar 🔊 y eliminar ❌
 function renderSavedWords() {
   const list = document.getElementById('savedWords');
   list.innerHTML = '';
@@ -328,12 +329,10 @@ function renderSavedWords() {
     const li = document.createElement('li');
     li.textContent = word;
 
-    // 🔊 Botón para escuchar
     const btnSpeak = document.createElement('button');
     btnSpeak.textContent = '🔊';
     btnSpeak.onclick = () => speak(word, 0.8);
 
-    // ❌ Botón para eliminar
     const btnDelete = document.createElement('button');
     btnDelete.textContent = '❌';
     btnDelete.style.backgroundColor = '#e74c3c';
@@ -369,7 +368,7 @@ function actualizarContadorGuardadas() {
 
 function descargarPalabras() {
   const guardadas = JSON.parse(localStorage.getItem('savedWords')) || [];
-  const texto = guardadas.join('\n');  // Solo las palabras, sin traducción
+  const texto = guardadas.join('\n');
   const blob = new Blob([texto], { type: 'text/plain' });
   const enlace = document.createElement('a');
   enlace.href = URL.createObjectURL(blob);
@@ -377,18 +376,14 @@ function descargarPalabras() {
   enlace.click();
 }
 
-// ✅ NUEVA FUNCIÓN: eliminar palabra guardada
 function deleteSavedWord(index) {
   if (confirm(`¿Eliminar "${saved[index]}" de las palabras guardadas?`)) {
-    saved.splice(index, 1); // Elimina del array
-    localStorage.setItem('savedWords', JSON.stringify(saved)); // Actualiza almacenamiento
-    renderSavedWords(); // Redibuja la lista
-    actualizarContadorGuardadas(); // Actualiza el contador
+    saved.splice(index, 1);
+    localStorage.setItem('savedWords', JSON.stringify(saved));
+    renderSavedWords();
+    actualizarContadorGuardadas();
   }
 }
-
 </script>
-
-
 </body>
 </html>
